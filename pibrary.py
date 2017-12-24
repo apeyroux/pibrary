@@ -28,6 +28,7 @@ if __name__ == "__main__":
 
     amazon = AmazonAPI(config['AMAZON_ACCESS_KEY'], config['AMAZON_SECRET_KEY'], config['AMAZON_ASSOC_TAG'], region="FR")
     amout = 0
+    print("ENTER ISBN:")
     while True:
         try:
             isbn = sys.stdin.readline()
