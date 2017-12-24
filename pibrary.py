@@ -33,15 +33,18 @@ if __name__ == "__main__":
             isbn = sys.stdin.readline()
             products = amazon.search(Keywords=isbn.strip(), SearchIndex='All')
             for _, product in enumerate(products):
-                print("{} de {} au prix de {}€".format(product.title, ', '.join(product.authors), product.price_and_currency[0]))
                 if product.price_and_currency[0] :
-                    if not session.query(Livre).filter_by(isbn=isbn).first() :
-                        l = Livre(isbn=isbn, titre=product.title, auteur=', '.join(product.authors), prix=product.price_and_currency[0])
-                        session.add(l)
-                        session.commit()
-                        amout = amout + product.price_and_currency[0]
-                        print("Dépense de {}€".format(amout))
-                    else:
-                        print("Déjà en db")
+                    prix = product.price_and_currency[0]
+                else:
+                    prix = 0
+                print("{} de {} au prix de {}€".format(product.title, ', '.join(product.authors), prix))
+                if not session.query(Livre).filter_by(isbn=isbn).first() :
+                    l = Livre(isbn=isbn, titre=product.title, auteur=', '.join(product.authors), prix=prix)
+                    session.add(l)
+                    session.commit()
+                    amout = amout + prix
+                    print("Dépense de {}€".format(amout))
+                else:
+                    print("Déjà en db")
         except Exception as ex:
             print(ex)

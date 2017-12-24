@@ -2,7 +2,7 @@
 # See more at: https://github.com/garbas/pypi2nix
 #
 # COMMAND:
-#   pypi2nix -r requirements.txt -V 3 -E libxml2 -E libxslt
+#   pypi2nix -v -r requirements.txt -V 3 -E libxml2 -E libxslt
 #
 
 { pkgs ? import <nixpkgs> {}
