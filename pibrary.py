@@ -1,6 +1,6 @@
-import atexit
 import json
 import sys
+import click
 
 from amazon.api import AmazonAPI
 from sqlalchemy import create_engine, Column, Integer, String, Float
@@ -19,10 +19,19 @@ class Livre(Base):
     auteur = Column(String)
     prix = Column(Float)
 
+CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 
-if __name__ == "__main__":
-
-    atexit.register(lambda: print("Exit"))
+@click.command(context_settings=CONTEXT_SETTINGS)
+@click.option('--depense',
+              is_flag=True,
+              help='Montant tt des dépenses de livres.')
+@click.option('--ls',
+              is_flag=True,
+              help='Liste des livres.')
+@click.option('--repl',
+              is_flag=True,
+              help='repl pour ajouter des livres')
+def main(depense, ls, repl):
 
     with open('aws.id.json', 'r') as cfg:
         config = json.loads(cfg.read())
@@ -37,38 +46,48 @@ if __name__ == "__main__":
                        config['AMAZON_ASSOC_TAG'],
                        region="FR",
                        )
-    amout = 0
-    print("Entrer le livre à ajouter (ISBN ou champ libre): ")
-    while True:
-        try:
-            recherche = sys.stdin.readline()
-            products = amazon.search(
-                Keywords=recherche.strip(), SearchIndex='All')
-            for _, product in enumerate(products):
-                if product.price_and_currency[0]:
-                    prix = product.price_and_currency[0]
-                else:
-                    prix = 0
-                print("{} de {} au prix de {}€".format(
-                    product.title, ', '.join(product.authors), prix))
-                sys.stdout.write("Ajouter ?: [Y/n]")
-                reponse = input().lower()
-                if reponse == 'n':
-                    print("Insertion annulée.")
-                elif reponse == 'y' or reponse == '':
-                    if not session.query(Livre).filter_by(isbn=product.isbn).first():
-                        l = Livre(isbn=product.isbn,
-                                  titre=product.title, auteur=', '.join(
-                                      product.authors),
-                                  prix=prix,
-                                  )
-                        session.add(l)
-                        session.commit()
-                        amout = amout + prix
-                        print("Dépense de {}€".format(amout))
+
+    if ls:
+        click.echo_via_pager('\n'.join([livre.titre for livre in session.query(Livre).all()]))
+
+    if depense:
+        somme = 0
+        for livre in session.query(Livre).all():
+            somme = somme + livre.prix
+        click.secho("Montant de la librairie : {0:.2f}€".format(somme),
+                               blink=True,
+                               bold=True,
+                               bg="red",
+                               fg="white")
+
+
+    if repl:
+        while True:
+            click.secho("Entrer le livre à ajouter (ISBN ou champ libre):", fg="blue")
+            try:
+                recherche = sys.stdin.readline()
+                products = amazon.search(
+                    Keywords=recherche.strip(), SearchIndex='All')
+                for _, product in enumerate(products):
+                    if product.price_and_currency[0]:
+                        prix = product.price_and_currency[0]
                     else:
-                        print("Déjà en db")
-                else:
-                    print("Je ne comprend pas la réponse.")
-        except Exception as ex:
-            print(ex)
+                        prix = 0
+                    if(click.confirm("Voulez-vous ajouter \"{}\" à la librairie ?".format(product.title), default=True)):
+                        if not session.query(Livre).filter_by(isbn=product.isbn).first():
+                            l = Livre(isbn=product.isbn,
+                                      titre=product.title, auteur=', '.join(
+                                          product.authors),
+                                      prix=prix,
+                                      )
+                            session.add(l)
+                            session.commit()
+                            click.secho("Ajout de {}".format(l.titre), fg="green")
+                        else:
+                            click.secho("{} est déjà en db".format(product.title), fg="red")
+            except Exception as ex:
+                click.secho("{}".format(ex), fg="red", bg="white")
+
+
+if __name__ == "__main__":
+    main()
