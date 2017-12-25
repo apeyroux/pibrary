@@ -8,5 +8,5 @@ setup(name='pibrary',
       author='Alexandre Peyroux',
       author_email='alex@xn--wxa.email',
       url='https://github.com/apeyroux/pibrary',
-      scripts=['./pibrary']
+      scripts=['./scripts/pibrary']
       )

@@ -28,9 +28,9 @@ CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 
 
 @click.command(context_settings=CONTEXT_SETTINGS)
-@click.option('--depense',
+@click.option('--valeur',
               is_flag=True,
-              help='Montant tt des dépenses de livres.')
+              help='Valeur de la librairie.')
 @click.option('--ls',
               is_flag=True,
               help='Liste des livres.')
@@ -40,9 +40,9 @@ CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 @click.option('--recherche',
               help="Recherche dans la librairie.")
 @click.pass_context
-def main(ctx, depense, ls, repl, recherche):
+def main(ctx, valeur, ls, repl, recherche):
 
-    if not depense \
+    if not valeur \
             and not ls \
             and not repl \
             and recherche is None:
@@ -73,11 +73,11 @@ def main(ctx, depense, ls, repl, recherche):
             '\n'.join(["{} [{}] {}€".format(livre.titre, livre.auteur, livre.prix)
                        for livre in session.query(Livre).all()]))
 
-    if depense:
+    if valeur:
         somme = 0
         for livre in session.query(Livre).all():
             somme = somme + livre.prix
-        click.secho("Montant de la librairie : {0:.2f}€".format(somme),
+        click.secho("Valeur de la librairie : {0:.2f}€".format(somme),
                     blink=True,
                     bold=True,
                     bg="red",
