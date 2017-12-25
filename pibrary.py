@@ -32,8 +32,17 @@ CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
               help='Liste des livres.')
 @click.option('--repl',
               is_flag=True,
-              help='repl pour ajouter des livres')
-def main(depense, ls, repl):
+              help='repl pour ajouter des livres.')
+@click.option('--recherche',
+              help="Recherche dans la librairie.")
+@click.pass_context
+def main(ctx, depense, ls, repl, recherche):
+
+    if not depense \
+            and not ls \
+            and not repl \
+            and recherche is None:
+        click.echo(ctx.get_help())
 
     with open('aws.id.json', 'r') as cfg:
         config = json.loads(cfg.read())
@@ -49,9 +58,16 @@ def main(depense, ls, repl):
                        region="FR",
                        )
 
+    if recherche:
+        click.echo_via_pager(
+            '\n'.join(
+                ["{} [{}] {}€".format(livre.titre, livre.auteur, livre.prix)
+                 for livre in session.query(Livre).filter(Livre.titre.like("%{}%".format(recherche))).all()]))
+
     if ls:
         click.echo_via_pager(
-            '\n'.join([livre.titre for livre in session.query(Livre).all()]))
+            '\n'.join(["{} [{}] {}€".format(livre.titre, livre.auteur, livre.prix)
+                       for livre in session.query(Livre).all()]))
 
     if depense:
         somme = 0
