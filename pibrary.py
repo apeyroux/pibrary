@@ -19,7 +19,9 @@ class Livre(Base):
     auteur = Column(String)
     prix = Column(Float)
 
+
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
+
 
 @click.command(context_settings=CONTEXT_SETTINGS)
 @click.option('--depense',
@@ -48,22 +50,23 @@ def main(depense, ls, repl):
                        )
 
     if ls:
-        click.echo_via_pager('\n'.join([livre.titre for livre in session.query(Livre).all()]))
+        click.echo_via_pager(
+            '\n'.join([livre.titre for livre in session.query(Livre).all()]))
 
     if depense:
         somme = 0
         for livre in session.query(Livre).all():
             somme = somme + livre.prix
         click.secho("Montant de la librairie : {0:.2f}€".format(somme),
-                               blink=True,
-                               bold=True,
-                               bg="red",
-                               fg="white")
-
+                    blink=True,
+                    bold=True,
+                    bg="red",
+                    fg="white")
 
     if repl:
         while True:
-            click.secho("Entrer le livre à ajouter (ISBN ou champ libre):", fg="blue")
+            click.secho(
+                "Entrer le livre à ajouter (ISBN ou champ libre):", fg="blue")
             try:
                 recherche = sys.stdin.readline()
                 products = amazon.search(
@@ -82,9 +85,12 @@ def main(depense, ls, repl):
                                       )
                             session.add(l)
                             session.commit()
-                            click.secho("Ajout de {}".format(l.titre), fg="green")
+                            click.secho(
+                                "Ajout de {}".format(l.titre), fg="green")
                         else:
-                            click.secho("{} est déjà en db".format(product.title), fg="red")
+                            click.secho(
+                                "{} est déjà en db".format(product.title),
+                                fg="red")
             except Exception as ex:
                 click.secho("{}".format(ex), fg="red", bg="white")
 
