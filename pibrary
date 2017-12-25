@@ -1,8 +1,12 @@
+#!/bin/env python
+
 import json
 import sys
 import click
+import os
 
 from amazon.api import AmazonAPI
+from pathlib import Path
 from sqlalchemy import create_engine, Column, Integer, String, Float
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
@@ -44,10 +48,10 @@ def main(ctx, depense, ls, repl, recherche):
             and recherche is None:
         click.echo(ctx.get_help())
 
-    with open('aws.id.json', 'r') as cfg:
+    with open(os.path.join('{}'.format(str(Path.home())), '.aws.id.json'), 'r') as cfg:
         config = json.loads(cfg.read())
 
-    db = create_engine('sqlite:///livres.db')
+    db = create_engine('sqlite:///{}'.format(os.path.join('{}'.format(str(Path.home())), '.librairie.db')))
     Base.metadata.create_all(db)
     Session = sessionmaker(bind=db)
     session = Session()
